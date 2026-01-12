@@ -2,7 +2,6 @@ package com.example.newsaggregator.controller;
 
 import com.example.newsaggregator.model.Article;
 import com.example.newsaggregator.repository.ArticleRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -13,10 +12,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/articles")
-@RequiredArgsConstructor
 public class ArticleController {
 
     private final ArticleRepository articleRepository;
+
+    public ArticleController(ArticleRepository articleRepository) {
+        this.articleRepository = articleRepository;
+    }
 
     @GetMapping
     public Page<Article> getAllArticles(

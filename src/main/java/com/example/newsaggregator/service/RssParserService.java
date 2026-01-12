@@ -6,8 +6,8 @@ import com.rometools.rome.feed.synd.SyndEntry;
 import com.rometools.rome.feed.synd.SyndFeed;
 import com.rometools.rome.io.SyndFeedInput;
 import com.rometools.rome.io.XmlReader;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -15,13 +15,21 @@ import java.net.URL;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.List;
 
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class RssParserService {
 
+    private static final Logger log = LoggerFactory.getLogger(RssParserService.class);
+
     private final ArticleRepository articleRepository;
+    private final NewsBot newsBot;
+
+    // Manual constructor injection
+    public RssParserService(ArticleRepository articleRepository, NewsBot newsBot) {
+        this.articleRepository = articleRepository;
+        this.newsBot = newsBot;
+    }
 
     @Scheduled(fixedRate = 600000) // 10 minutes
     public void parseRss() {
@@ -33,12 +41,12 @@ public class RssParserService {
             SyndFeedInput input = new SyndFeedInput();
             SyndFeed feed = input.build(new XmlReader(feedUrl));
 
+            List<Article> existingArticles = articleRepository.findAll();
+
             for (SyndEntry entry : feed.getEntries()) {
                 String link = entry.getLink();
 
-                // Простая проверка на дубликаты: если новости с таким URL нет, сохраняем
-                // (В реальном проекте лучше сделать existsByUrl в репозитории)
-                boolean exists = articleRepository.findAll().stream()
+                boolean exists = existingArticles.stream()
                         .anyMatch(a -> a.getUrl().equals(link));
 
                 if (!exists) {
@@ -56,6 +64,8 @@ public class RssParserService {
 
                     articleRepository.save(article);
                     log.info("Saved article: {}", article.getTitle());
+
+                    newsBot.broadcastNews("Новая статья: " + article.getTitle() + "\n" + article.getUrl());
                 }
             }
             log.info("RSS parsing completed.");

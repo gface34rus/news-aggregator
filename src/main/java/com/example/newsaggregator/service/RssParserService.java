@@ -6,8 +6,8 @@ import com.rometools.rome.feed.synd.SyndEntry;
 import com.rometools.rome.feed.synd.SyndFeed;
 import com.rometools.rome.io.SyndFeedInput;
 import com.rometools.rome.io.XmlReader;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -18,18 +18,12 @@ import java.util.Date;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
+@Slf4j
 public class RssParserService {
-
-    private static final Logger log = LoggerFactory.getLogger(RssParserService.class);
 
     private final ArticleRepository articleRepository;
     private final NewsBot newsBot;
-
-    // Manual constructor injection
-    public RssParserService(ArticleRepository articleRepository, NewsBot newsBot) {
-        this.articleRepository = articleRepository;
-        this.newsBot = newsBot;
-    }
 
     @Scheduled(fixedRate = 600000) // 10 minutes
     public void parseRss() {

@@ -1,7 +1,6 @@
 package com.example.newsaggregator.service;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
@@ -14,13 +13,13 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
+@Slf4j
 public class NewsBot extends TelegramLongPollingBot {
-
-    private static final Logger log = LoggerFactory.getLogger(NewsBot.class);
 
     @Value("${bot.name}")
     private String botName;
 
+    // Временное хранилище подписчиков (в памяти). При перезапуске исчезнет.
     private final Set<Long> subscribers = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     public NewsBot(@Value("${bot.token}") String botToken) {

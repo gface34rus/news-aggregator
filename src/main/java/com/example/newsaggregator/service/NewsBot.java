@@ -8,10 +8,6 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-import java.util.Collections;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
 @Component
 @Slf4j
 public class NewsBot extends TelegramLongPollingBot {
@@ -19,11 +15,12 @@ public class NewsBot extends TelegramLongPollingBot {
     @Value("${bot.name}")
     private String botName;
 
-    // Временное хранилище подписчиков (в памяти). При перезапуске исчезнет.
-    private final Set<Long> subscribers = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    private final com.example.newsaggregator.repository.SubscriberRepository subscriberRepository;
 
-    public NewsBot(@Value("${bot.token}") String botToken) {
+    public NewsBot(@Value("${bot.token}") String botToken,
+            com.example.newsaggregator.repository.SubscriberRepository subscriberRepository) {
         super(botToken);
+        this.subscriberRepository = subscriberRepository;
     }
 
     @Override
@@ -33,15 +30,21 @@ public class NewsBot extends TelegramLongPollingBot {
             Long chatId = update.getMessage().getChatId();
 
             if ("/start".equals(text)) {
-                subscribers.add(chatId);
-                sendMessage(chatId, "Привет! Я буду присылать тебе свежие новости.");
+                if (!subscriberRepository.existsByChatId(chatId)) {
+                    subscriberRepository.save(new com.example.newsaggregator.model.Subscriber(chatId));
+                    sendMessage(chatId, "Привет! Я буду присылать тебе свежие новости.");
+                    log.info("New subscriber registered: {}", chatId);
+                } else {
+                    sendMessage(chatId, "Вы уже подписаны на новости.");
+                }
             }
         }
     }
 
     public void broadcastNews(String messageText) {
-        for (Long chatId : subscribers) {
-            sendMessage(chatId, messageText);
+        var subscribers = subscriberRepository.findAll();
+        for (com.example.newsaggregator.model.Subscriber sub : subscribers) {
+            sendMessage(sub.getChatId(), messageText);
         }
     }
 

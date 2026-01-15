@@ -32,11 +32,6 @@ public class RssParserService {
     /**
      * Основной метод парсинга.
      * Запускается автоматически каждые 10 минут (600000 мс).
-     * <p>
-     * Алгоритм:
-     * 1. Скачивает RSS-ленту с Хабра.
-     * 2. Проверяет каждую статью: есть ли она уже в БД (по URL).
-     * 3. Если новой статьи нет -> сохраняет и отправляет в Telegram.
      */
     @Scheduled(fixedRate = 600000) // 10 minutes
     public void parseRss() {
@@ -44,9 +39,7 @@ public class RssParserService {
         log.info("Starting RSS parsing: {}", rssUrl);
 
         try {
-            URL feedUrl = new URL(rssUrl);
-            SyndFeedInput input = new SyndFeedInput();
-            SyndFeed feed = input.build(new XmlReader(feedUrl));
+            SyndFeed feed = fetchFeed(rssUrl);
 
             List<Article> existingArticles = articleRepository.findAll();
 
@@ -80,5 +73,11 @@ public class RssParserService {
         } catch (Exception e) {
             log.error("Error parsing RSS", e);
         }
+    }
+
+    protected SyndFeed fetchFeed(String urlString) throws Exception {
+        URL feedUrl = new URL(urlString);
+        SyndFeedInput input = new SyndFeedInput();
+        return input.build(new XmlReader(feedUrl));
     }
 }

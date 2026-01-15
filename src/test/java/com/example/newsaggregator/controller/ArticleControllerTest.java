@@ -8,10 +8,12 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -36,7 +38,12 @@ class ArticleControllerTest {
         Article article = new Article();
         article.setId(1L);
         article.setTitle("Test Title");
-        Page<Article> page = new PageImpl<>(List.of(article));
+
+        // Use mutable list and explicit PageRequest to avoid serialization issues
+        List<Article> articles = new ArrayList<>();
+        articles.add(article);
+
+        Page<Article> page = new PageImpl<>(articles, PageRequest.of(0, 10), 1);
 
         when(articleRepository.findAll(any(Pageable.class))).thenReturn(page);
 
@@ -50,7 +57,8 @@ class ArticleControllerTest {
     @Test
     void getAllArticles_Empty_ShouldReturnEmptyList() throws Exception {
         // Arrange
-        Page<Article> page = new PageImpl<>(Collections.emptyList());
+        // Use explicit PageRequest
+        Page<Article> page = new PageImpl<>(Collections.emptyList(), PageRequest.of(0, 10), 0);
         when(articleRepository.findAll(any(Pageable.class))).thenReturn(page);
 
         // Act & Assert

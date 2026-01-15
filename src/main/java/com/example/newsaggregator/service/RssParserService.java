@@ -17,6 +17,10 @@ import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 
+/**
+ * Сервис для парсинга RSS-лент.
+ * Запускается по расписанию и сохраняет новые статьи в базу данных.
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -25,6 +29,15 @@ public class RssParserService {
     private final ArticleRepository articleRepository;
     private final NewsBot newsBot;
 
+    /**
+     * Основной метод парсинга.
+     * Запускается автоматически каждые 10 минут (600000 мс).
+     * <p>
+     * Алгоритм:
+     * 1. Скачивает RSS-ленту с Хабра.
+     * 2. Проверяет каждую статью: есть ли она уже в БД (по URL).
+     * 3. Если новой статьи нет -> сохраняет и отправляет в Telegram.
+     */
     @Scheduled(fixedRate = 600000) // 10 minutes
     public void parseRss() {
         String rssUrl = "https://habr.com/ru/rss/all/all/";

@@ -11,12 +11,26 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+/**
+ * Web контроллер для отображения HTML страниц.
+ * Использует Thymeleaf для рендеринга.
+ */
 @Controller
 @RequiredArgsConstructor
 public class WebController {
 
     private final ArticleRepository articleRepository;
 
+    /**
+     * Главная страница с новостями.
+     * Поддерживает поиск и пагинацию.
+     *
+     * @param model   Модель для передачи данных в шаблон.
+     * @param keyword Ключевое слово для поиска (опционально).
+     * @param page    Номер страницы.
+     * @param size    Размер страницы.
+     * @return Имя HTML шаблона ("articles").
+     */
     @GetMapping("/")
     public String index(Model model,
             @RequestParam(required = false) String keyword,

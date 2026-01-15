@@ -8,6 +8,10 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+/**
+ * Telegram-бот для рассылки новостей.
+ * Обрабатывает команды пользователей и рассылает уведомления о новых статьях.
+ */
 @Component
 @Slf4j
 public class NewsBot extends TelegramLongPollingBot {
@@ -23,6 +27,12 @@ public class NewsBot extends TelegramLongPollingBot {
         this.subscriberRepository = subscriberRepository;
     }
 
+    /**
+     * Метод, вызываемый при получении обновления от Telegram (сообщение, команда).
+     * Обрабатывает команду /start для регистрации подписчика.
+     *
+     * @param update Объект обновления Telegram.
+     */
     @Override
     public void onUpdateReceived(Update update) {
         if (update.hasMessage() && update.getMessage().hasText()) {
@@ -41,6 +51,11 @@ public class NewsBot extends TelegramLongPollingBot {
         }
     }
 
+    /**
+     * Рассылка сообщения всем подписчикам.
+     *
+     * @param messageText Текст сообщения.
+     */
     public void broadcastNews(String messageText) {
         var subscribers = subscriberRepository.findAll();
         for (com.example.newsaggregator.model.Subscriber sub : subscribers) {
@@ -48,6 +63,12 @@ public class NewsBot extends TelegramLongPollingBot {
         }
     }
 
+    /**
+     * Вспомогательный метод для отправки сообщения.
+     *
+     * @param chatId ID чата получателя.
+     * @param text   Текст сообщения.
+     */
     private void sendMessage(Long chatId, String text) {
         SendMessage message = new SendMessage();
         message.setChatId(String.valueOf(chatId));
